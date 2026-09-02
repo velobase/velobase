@@ -11,9 +11,12 @@
   "scripts": {
     "build": "pnpm --recursive build",
     "check": "pnpm format:check && pnpm --recursive typecheck && pnpm --recursive test",
+    "db:down": "docker compose down",
+    "db:up": "docker compose up --detach --wait postgres",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm --recursive test",
+    "test:integration": "TEST_DATABASE_URL=postgresql://velobase:velobase@127.0.0.1:54329/velobase pnpm --filter @velobase/billing test",
     "typecheck": "pnpm --recursive typecheck"
   },
   "devDependencies": {

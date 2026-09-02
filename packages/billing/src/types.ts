@@ -132,6 +132,24 @@ export type LedgerResult = {
   nextBefore: Date | null;
 };
 
+export type SettleDueInput = {
+  limit?: number;
+};
+
+export type AutomaticSettlementFailure = {
+  transactionId: string;
+  code: string;
+  message: string;
+};
+
+export type SettleDueResult = {
+  processed: number;
+  settled: number;
+  released: number;
+  replayed: number;
+  failures: AutomaticSettlementFailure[];
+};
+
 export interface Billing {
   grant(input: GrantInput): Promise<GrantResult>;
   reserve(input: ReserveInput): Promise<ReservationResult>;
@@ -139,4 +157,5 @@ export interface Billing {
   release(input: ReleaseInput): Promise<ReservationResult>;
   getBalance(input: GetBalanceInput): Promise<BalanceResult>;
   listLedger(input?: ListLedgerInput): Promise<LedgerResult>;
+  settleDue(input?: SettleDueInput): Promise<SettleDueResult>;
 }

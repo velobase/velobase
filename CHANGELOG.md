@@ -11,3 +11,6 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Open-source project governance and Apache-2.0 licensing.
 - Public billing domain types, structured errors, and deterministic FEFO allocation.
 - Continuous integration for formatting, type checking, tests, and builds.
+- PostgreSQL grants, reservations, settlements, releases, balances, and append-only ledger storage.
+- Checksum-protected migrations and automatic reservation settlement.
+- Integration tests for retries, terminal states, tenant isolation, FEFO allocation, and concurrent reservations.
