@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-02
+
 ### Added
 
 - Open-source project governance and Apache-2.0 licensing.
@@ -17,3 +19,6 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - A local Fastify API, Ledger Explorer, Docker Compose environment, and runnable AI video example.
 - Lossless opaque-cursor pagination for ledger entries with identical timestamps.
 - OpenAPI 3.1 documentation, architecture and self-hosting guides, issue forms, and release artifact automation.
+
+[Unreleased]: https://github.com/velobase/velobase/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/velobase/velobase/releases/tag/v0.1.0
