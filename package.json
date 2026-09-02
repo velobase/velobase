@@ -1,6 +1,6 @@
 {
   "name": "velobase",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Open-source usage credit engine for AI and SaaS products",
   "license": "Apache-2.0",
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "pnpm --recursive build",
-    "check": "pnpm format:check && pnpm build && pnpm typecheck && pnpm test:packages",
+    "check": "pnpm format:check && pnpm validate:docs && pnpm validate:openapi && pnpm validate:versions && pnpm build && pnpm typecheck && pnpm test:packages && pnpm smoke:package",
     "db:down": "docker compose down",
     "db:up": "docker compose up --detach --wait postgres",
     "demo": "pnpm --filter @velobase/example-ai-video demo",
@@ -18,10 +18,14 @@
     "dev:down": "docker compose down",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "smoke:package": "node scripts/smoke-package.mjs",
     "test": "pnpm build && pnpm test:packages",
     "test:packages": "pnpm --workspace-concurrency=1 --recursive test",
     "test:integration": "TEST_DATABASE_URL=postgresql://velobase:velobase@127.0.0.1:54329/velobase pnpm test",
-    "typecheck": "pnpm --recursive typecheck"
+    "typecheck": "pnpm --recursive typecheck",
+    "validate:docs": "node scripts/validate-docs.mjs",
+    "validate:openapi": "node scripts/validate-openapi.mjs",
+    "validate:versions": "node scripts/validate-versions.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

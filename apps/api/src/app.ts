@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import {
   BillingError,
@@ -17,6 +18,11 @@ import {
   reserveSchema,
   settleSchema,
 } from "./schemas.js";
+
+const openApiDocument = readFileSync(
+  new URL("../../../openapi.json", import.meta.url),
+  "utf8",
+);
 
 export type CreateAppOptions = {
   pool: Pool;
@@ -82,6 +88,10 @@ export function createApp(options: CreateAppOptions): {
   });
 
   app.get("/health", async () => ({ status: "ok" }));
+
+  app.get("/openapi.json", async (_request, reply) => {
+    return reply.type("application/json; charset=utf-8").send(openApiDocument);
+  });
 
   app.post("/v1/grants", async (request, reply) => {
     const input = grantSchema.parse(request.body);

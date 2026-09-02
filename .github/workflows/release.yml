@@ -1,0 +1,63 @@
+name: Release artifacts
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: velobase
+          POSTGRES_USER: velobase
+          POSTGRES_PASSWORD: velobase
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U velobase -d velobase"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+
+    env:
+      TEST_DATABASE_URL: postgresql://velobase:velobase@127.0.0.1:5432/velobase
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install and validate
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm check
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+
+      - name: Build release archive
+        run: |
+          mkdir artifacts
+          pnpm --dir packages/billing pack --pack-destination ../../artifacts
+
+      - name: Attach package archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" artifacts/*.tgz --clobber

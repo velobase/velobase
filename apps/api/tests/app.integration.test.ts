@@ -46,6 +46,13 @@ integration("Velobase API", () => {
     expect(explorer.statusCode).toBe(200);
     expect(explorer.headers["content-type"]).toContain("text/html");
     expect(explorer.body).toContain("Know where every credit went.");
+
+    const openapi = await app.inject({ method: "GET", url: "/openapi.json" });
+    expect(openapi.statusCode).toBe(200);
+    expect(openapi.json()).toMatchObject({
+      openapi: "3.1.0",
+      info: { title: "Velobase Local API" },
+    });
   });
 
   it("exposes the complete reservation lifecycle", async () => {

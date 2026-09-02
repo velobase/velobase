@@ -8,6 +8,7 @@ RUN corepack enable && corepack prepare pnpm@10.12.1 --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY openapi.json openapi.json
 COPY packages/billing/package.json packages/billing/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY examples/ai-video/package.json examples/ai-video/package.json

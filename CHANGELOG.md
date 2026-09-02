@@ -15,3 +15,5 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Checksum-protected migrations and automatic reservation settlement.
 - Integration tests for retries, terminal states, tenant isolation, FEFO allocation, and concurrent reservations.
 - A local Fastify API, Ledger Explorer, Docker Compose environment, and runnable AI video example.
+- Lossless opaque-cursor pagination for ledger entries with identical timestamps.
+- OpenAPI 3.1 documentation, architecture and self-hosting guides, issue forms, and release artifact automation.

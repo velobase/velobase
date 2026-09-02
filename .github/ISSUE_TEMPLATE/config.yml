@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Integration question or idea
+    url: https://github.com/velobase/velobase/discussions
+    about: Ask questions and explore designs with the community.
+  - name: Security vulnerability
+    url: https://github.com/velobase/velobase/security/advisories/new
+    about: Report security issues privately.

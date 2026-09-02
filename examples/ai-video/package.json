@@ -1,6 +1,6 @@
 {
   "name": "@velobase/example-ai-video",
-  "version": "0.0.0-development",
+  "version": "0.1.0",
   "private": true,
   "description": "Reserve an estimated AI video cost and settle the actual amount",
   "license": "Apache-2.0",

@@ -104,6 +104,7 @@ export const explorerHtml = String.raw`<!doctype html>
       .error { display: none; margin-top: 12px; padding: 14px 16px; border: 1px solid rgba(255, 140, 125, 0.35); border-radius: 12px; background: rgba(255, 140, 125, 0.08); color: #ffc1b8; font-size: 13px; }
 
       footer { display: flex; justify-content: space-between; margin-top: 24px; color: var(--muted); font: 11px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      footer a { color: var(--green); text-decoration: none; }
 
       @media (max-width: 780px) {
         header { grid-template-columns: 1fr; padding-top: 56px; }
@@ -167,7 +168,7 @@ export const explorerHtml = String.raw`<!doctype html>
         </div>
       </section>
 
-      <footer><span>Tenant: demo / Project: ai-video</span><span>Append-only · FEFO · Retry-safe</span></footer>
+      <footer><span>Tenant: demo / Project: ai-video · <a href="/openapi.json">OpenAPI</a></span><span>Append-only · FEFO · Retry-safe</span></footer>
     </div>
 
     <script>

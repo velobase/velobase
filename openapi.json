@@ -1,0 +1,789 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Velobase Local API",
+    "version": "0.1.0",
+    "description": "A local, unauthenticated HTTP adapter for the Velobase usage credit engine. Add authentication and authorization before exposing it outside a trusted development environment.",
+    "license": {
+      "name": "Apache-2.0",
+      "identifier": "Apache-2.0"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://{host}:{port}",
+      "description": "Local Docker Compose server",
+      "variables": {
+        "host": {
+          "default": "localhost",
+          "description": "Host running the trusted local adapter."
+        },
+        "port": {
+          "default": "3000"
+        }
+      }
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "System",
+      "description": "Local service metadata."
+    },
+    {
+      "name": "Credits",
+      "description": "Create independently explainable credit grants."
+    },
+    {
+      "name": "Reservations",
+      "description": "Reserve estimates and choose exactly one terminal outcome."
+    },
+    {
+      "name": "Read models",
+      "description": "Inspect balances and append-only ledger history."
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Check process health",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "The process is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {
+                      "const": "ok"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/grants": {
+      "post": {
+        "operationId": "grantCredits",
+        "summary": "Grant credits to a customer wallet",
+        "description": "The idempotency key identifies this grant within the configured tenant and project. Repeating the same request is safe.",
+        "tags": ["Credits"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Grant created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResult"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "A matching grant was replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/v1/reservations": {
+      "post": {
+        "operationId": "reserveCredits",
+        "summary": "Reserve an estimated credit amount",
+        "description": "The transaction ID is the idempotency identity for the entire reservation lifecycle.",
+        "tags": ["Reservations"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reservation created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResult"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "A matching reservation was replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/v1/reservations/{transactionId}/settle": {
+      "post": {
+        "operationId": "settleReservation",
+        "summary": "Settle a reservation at its actual cost",
+        "description": "Unused reserved credits are released atomically. The actual amount cannot exceed the reserved amount.",
+        "tags": ["Reservations"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TransactionId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reservation settled, or a matching settlement replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/v1/reservations/{transactionId}/release": {
+      "post": {
+        "operationId": "releaseReservation",
+        "summary": "Release a reservation without charging it",
+        "tags": ["Reservations"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TransactionId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation released, or a matching release replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/v1/balances/{customerId}": {
+      "get": {
+        "operationId": "getBalance",
+        "summary": "Read a customer's balance and grant breakdown",
+        "tags": ["Read models"],
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Identifier"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Wallet"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          }
+        }
+      }
+    },
+    "/v1/ledger": {
+      "get": {
+        "operationId": "listLedger",
+        "summary": "List append-only ledger entries",
+        "tags": ["Read models"],
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Identifier"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Wallet"
+          },
+          {
+            "name": "transactionId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Identifier"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque cursor returned as nextCursor by the previous page.",
+            "schema": {
+              "type": "string",
+              "maxLength": 512
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A newest-first page of ledger entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LedgerResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "TransactionId": {
+        "name": "transactionId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Identifier"
+        }
+      },
+      "Wallet": {
+        "name": "wallet",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/Identifier"
+        }
+      }
+    },
+    "responses": {
+      "InvalidRequest": {
+        "description": "The request is invalid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The transaction does not exist in this tenant and project",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "The operation conflicts with balance, idempotency, or reservation state",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Identifier": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 255
+      },
+      "PositiveAmount": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 9007199254740991
+      },
+      "NonNegativeAmount": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "Metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "GrantInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["customerId", "amount", "idempotencyKey"],
+        "properties": {
+          "customerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          },
+          "idempotencyKey": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata"
+          }
+        }
+      },
+      "GrantResult": {
+        "type": "object",
+        "required": [
+          "grantId",
+          "customerId",
+          "wallet",
+          "source",
+          "amount",
+          "available",
+          "validFrom",
+          "expiresAt",
+          "replayed"
+        ],
+        "properties": {
+          "grantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          },
+          "available": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "validFrom": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReserveInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["customerId", "amount", "transactionId"],
+        "properties": {
+          "customerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          },
+          "transactionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "autoReleaseAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "autoSettleAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata"
+          }
+        }
+      },
+      "SettleInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["actualAmount"],
+        "properties": {
+          "actualAmount": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          }
+        }
+      },
+      "Allocation": {
+        "type": "object",
+        "required": ["grantId", "source", "amount"],
+        "properties": {
+          "grantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          }
+        }
+      },
+      "ReservationResult": {
+        "type": "object",
+        "required": [
+          "reservationId",
+          "transactionId",
+          "customerId",
+          "wallet",
+          "status",
+          "reservedAmount",
+          "settledAmount",
+          "releasedAmount",
+          "allocations",
+          "automaticAction",
+          "automaticActionAt",
+          "replayed"
+        ],
+        "properties": {
+          "reservationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transactionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["RESERVED", "SETTLED", "RELEASED"]
+          },
+          "reservedAmount": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          },
+          "settledAmount": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "releasedAmount": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Allocation"
+            }
+          },
+          "automaticAction": {
+            "type": ["string", "null"],
+            "enum": ["SETTLE", "RELEASE", null]
+          },
+          "automaticActionAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GrantBalance": {
+        "type": "object",
+        "required": [
+          "grantId",
+          "source",
+          "total",
+          "used",
+          "reserved",
+          "available",
+          "validFrom",
+          "expiresAt"
+        ],
+        "properties": {
+          "grantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "total": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          },
+          "used": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "reserved": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "available": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "validFrom": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          }
+        }
+      },
+      "BalanceResult": {
+        "type": "object",
+        "required": [
+          "customerId",
+          "wallet",
+          "total",
+          "used",
+          "reserved",
+          "available",
+          "grants"
+        ],
+        "properties": {
+          "customerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "total": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "used": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "reserved": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "available": {
+            "$ref": "#/components/schemas/NonNegativeAmount"
+          },
+          "grants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrantBalance"
+            }
+          }
+        }
+      },
+      "LedgerEntry": {
+        "type": "object",
+        "required": [
+          "id",
+          "customerId",
+          "wallet",
+          "source",
+          "transactionId",
+          "operation",
+          "amount",
+          "description",
+          "metadata",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "wallet": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "transactionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["GRANT", "RESERVE", "SETTLE", "RELEASE"]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/PositiveAmount"
+          },
+          "description": {
+            "type": ["string", "null"]
+          },
+          "metadata": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Metadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LedgerResult": {
+        "type": "object",
+        "required": ["entries", "nextCursor"],
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LedgerEntry"
+            }
+          },
+          "nextCursor": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["name", "code", "message", "details"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string",
+                "examples": ["INSUFFICIENT_BALANCE"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
