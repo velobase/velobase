@@ -174,5 +174,6 @@ jobs:
 
       - name: Attach release artifacts
         env:
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" artifacts/* --clobber
