@@ -1,0 +1,23 @@
+{
+  "name": "velobase",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Open-source usage credit engine for AI and SaaS products",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build": "pnpm --recursive build",
+    "check": "pnpm format:check && pnpm --recursive typecheck && pnpm --recursive test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm --recursive test",
+    "typecheck": "pnpm --recursive typecheck"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  }
+}

@@ -10,6 +10,8 @@ build/
 
 # Environment
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 
@@ -37,3 +39,6 @@ prisma/*.db-journal
 # Misc
 *.tgz
 .cache/
+
+# Local data
+.data/
