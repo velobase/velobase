@@ -24,6 +24,23 @@ for (const manifest of versions) {
   }
 }
 
+const openApi = JSON.parse(
+  await readFile(new URL("../openapi.json", import.meta.url), "utf8"),
+);
+if (openApi.info.version !== expected) {
+  throw new Error(
+    `openapi.json has version ${openApi.info.version}; expected ${expected}`,
+  );
+}
+
+const expectedImage = `ghcr.io/velobase/velobase:${expected}`;
+for (const path of ["../compose.yaml", "../.env.example"]) {
+  const contents = await readFile(new URL(path, import.meta.url), "utf8");
+  if (!contents.includes(expectedImage)) {
+    throw new Error(`${path} does not reference ${expectedImage}`);
+  }
+}
+
 const releaseTag = process.env.RELEASE_TAG;
 if (releaseTag && releaseTag !== `v${expected}`) {
   throw new Error(`release tag ${releaseTag} does not match v${expected}`);

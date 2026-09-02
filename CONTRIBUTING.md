@@ -34,6 +34,14 @@ pnpm db:down
 
 `pnpm check` validates formatting and OpenAPI, builds from source, type-checks every workspace, runs tests, and installs the packed billing archive in a temporary consumer project.
 
+Changes to the API, migrations, Compose stack, or Dockerfile must also pass the release-equivalent container check:
+
+```bash
+pnpm docker:test
+```
+
+It builds the production image and verifies one-shot migrations, health, the demo lifecycle, non-root execution, a read-only root filesystem, restart persistence, and migration replay.
+
 ## Accounting changes
 
 - State the invariant or failure mode a change protects.
