@@ -1,0 +1,18 @@
+services:
+  api:
+    image: velobase:dev
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        VERSION: dev
+        REVISION: local
+
+  migrate:
+    image: velobase:dev
+    pull_policy: never
+
+  postgres:
+    ports:
+      - "127.0.0.1:${VELOBASE_POSTGRES_PORT:-54329}:5432"

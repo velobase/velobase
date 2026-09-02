@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Velobase Local API",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "A local, unauthenticated HTTP adapter for the Velobase usage credit engine. Add authentication and authorization before exposing it outside a trusted development environment.",
     "license": {
       "name": "Apache-2.0",

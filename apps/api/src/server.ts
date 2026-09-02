@@ -1,4 +1,3 @@
-import { migrate } from "@velobase/billing";
 import { Pool } from "pg";
 
 import { createApp } from "./app.js";
@@ -11,7 +10,6 @@ const pool = new Pool({
     "postgresql://velobase:velobase@127.0.0.1:54329/velobase",
 });
 
-await migrate(pool);
 const { app, billing } = createApp({
   pool,
   tenantId: process.env.VELOBASE_TENANT_ID ?? "demo",
