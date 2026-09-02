@@ -42,7 +42,7 @@ export const ledgerQuerySchema = z.object({
   wallet: identifier.optional(),
   transactionId: identifier.optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
-  before: z.coerce.date().optional(),
+  cursor: z.string().min(1).max(512).optional(),
 });
 
 export const balanceQuerySchema = z.object({

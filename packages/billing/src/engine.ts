@@ -62,6 +62,44 @@ type DueReservationRow = {
   automatic_action: "SETTLE" | "RELEASE";
 };
 
+type LedgerCursor = {
+  createdAt: Date;
+  id: string;
+};
+
+function encodeLedgerCursor(row: LedgerRow): string {
+  return Buffer.from(
+    JSON.stringify([row.created_at.toISOString(), row.id]),
+  ).toString("base64url");
+}
+
+function decodeLedgerCursor(cursor: string): LedgerCursor {
+  try {
+    if (cursor.length === 0 || cursor.length > 512) throw new Error();
+    const value: unknown = JSON.parse(
+      Buffer.from(cursor, "base64url").toString("utf8"),
+    );
+    if (
+      !Array.isArray(value) ||
+      value.length !== 2 ||
+      typeof value[0] !== "string" ||
+      typeof value[1] !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value[1],
+      )
+    ) {
+      throw new Error();
+    }
+    const createdAt = new Date(value[0]);
+    if (Number.isNaN(createdAt.getTime())) throw new Error();
+    return { createdAt, id: value[1] };
+  } catch {
+    throw new BillingError("INVALID_ARGUMENT", "cursor is invalid", {
+      field: "cursor",
+    });
+  }
+}
+
 function automaticAction(input: ReserveInput): {
   action: "SETTLE" | "RELEASE" | null;
   afterSeconds: number | null;
@@ -603,12 +641,6 @@ export class PostgresBilling implements Billing {
         { field: "limit", value: limit },
       );
     }
-    if (input.before && Number.isNaN(input.before.getTime())) {
-      throw new BillingError("INVALID_ARGUMENT", "before must be valid", {
-        field: "before",
-      });
-    }
-
     const clauses = ["tenant_id = $1", "project_id = $2"];
     const values: unknown[] = [this.tenantId, this.projectId];
     const addClause = (sql: string, value: unknown) => {
@@ -630,8 +662,12 @@ export class PostgresBilling implements Billing {
         requireIdentifier(input.transactionId, "transactionId"),
       );
     }
-    if (input.before !== undefined) {
-      addClause("created_at < ?", input.before);
+    if (input.cursor !== undefined) {
+      const cursor = decodeLedgerCursor(input.cursor);
+      values.push(cursor.createdAt, cursor.id);
+      clauses.push(
+        `(created_at, id) < ($${values.length - 1}, $${values.length}::uuid)`,
+      );
     }
     values.push(limit);
 
@@ -658,7 +694,10 @@ export class PostgresBilling implements Billing {
     }));
     return {
       entries,
-      nextBefore: entries.length === limit ? entries.at(-1)!.createdAt : null,
+      nextCursor:
+        result.rows.length === limit
+          ? encodeLedgerCursor(result.rows.at(-1)!)
+          : null,
     };
   }
 

@@ -114,6 +114,35 @@ integration("PostgresBilling", () => {
     expect(ledger.entries).toHaveLength(1);
   });
 
+  it("paginates ledger entries without gaps when timestamps are equal", async () => {
+    for (const idempotencyKey of ["grant-1", "grant-2", "grant-3"]) {
+      await billing.grant({
+        customerId: "customer-1",
+        amount: 10,
+        idempotencyKey,
+      });
+    }
+
+    const firstPage = await billing.listLedger({
+      customerId: "customer-1",
+      limit: 2,
+    });
+    expect(firstPage.entries).toHaveLength(2);
+    expect(firstPage.nextCursor).not.toBeNull();
+
+    const secondPage = await billing.listLedger({
+      customerId: "customer-1",
+      limit: 2,
+      cursor: firstPage.nextCursor!,
+    });
+    expect(secondPage.entries).toHaveLength(1);
+    expect(secondPage.nextCursor).toBeNull();
+    expect(
+      new Set([...firstPage.entries, ...secondPage.entries].map(({ id }) => id))
+        .size,
+    ).toBe(3);
+  });
+
   it("makes reservation and settlement retries safe after terminal state", async () => {
     await billing.grant({
       customerId: "customer-1",

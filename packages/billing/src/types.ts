@@ -111,7 +111,7 @@ export type ListLedgerInput = {
   wallet?: string;
   transactionId?: string;
   limit?: number;
-  before?: Date;
+  cursor?: string;
 };
 
 export type LedgerEntry = {
@@ -129,7 +129,7 @@ export type LedgerEntry = {
 
 export type LedgerResult = {
   entries: LedgerEntry[];
-  nextBefore: Date | null;
+  nextCursor: string | null;
 };
 
 export type SettleDueInput = {
