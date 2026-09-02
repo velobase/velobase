@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY openapi.json openapi.json
 COPY packages/billing/package.json packages/billing/package.json
+COPY packages/billing/bin packages/billing/bin
 COPY apps/api/package.json apps/api/package.json
 COPY examples/ai-video/package.json examples/ai-video/package.json
 RUN pnpm install --frozen-lockfile

@@ -8,9 +8,10 @@
   "types": "./dist/index.d.ts",
   "module": "./dist/index.js",
   "bin": {
-    "velobase-billing": "./dist/cli.js"
+    "velobase-billing": "./bin/velobase-billing.js"
   },
   "files": [
+    "bin",
     "dist",
     "migrations",
     "README.md",

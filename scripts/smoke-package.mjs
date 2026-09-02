@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { access, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -62,6 +62,19 @@ try {
   await access(
     join(temporaryDirectory, "node_modules", "@velobase", "billing", "NOTICE"),
   );
+  const executable = join(
+    temporaryDirectory,
+    "node_modules",
+    ".bin",
+    process.platform === "win32" ? "velobase-billing.cmd" : "velobase-billing",
+  );
+  const cli = spawnSync(executable, [], { encoding: "utf8" });
+  if (
+    cli.status !== 1 ||
+    !cli.stderr.includes("Usage: velobase-billing migrate")
+  ) {
+    throw new Error("the packaged CLI did not start correctly");
+  }
   console.log(`package archive installs and imports successfully: ${archive}`);
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });

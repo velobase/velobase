@@ -3,4 +3,5 @@ packages:
   - apps/*
   - examples/*
 
-onlyBuiltDependencies: []
+onlyBuiltDependencies:
+  - esbuild
