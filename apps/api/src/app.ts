@@ -87,7 +87,10 @@ export function createApp(options: CreateAppOptions): {
     return reply.type("text/html; charset=utf-8").send(explorerHtml);
   });
 
-  app.get("/health", async () => ({ status: "ok" }));
+  app.get("/health", async () => {
+    await options.pool.query("SELECT 1");
+    return { status: "ok" };
+  });
 
   app.get("/openapi.json", async (_request, reply) => {
     return reply.type("application/json; charset=utf-8").send(openApiDocument);

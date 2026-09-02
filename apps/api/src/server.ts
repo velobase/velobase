@@ -20,11 +20,16 @@ const { app, billing } = createApp({
 });
 
 const settlementTimer = setInterval(() => {
-  void billing.settleDue().then((result) => {
-    if (result.processed > 0 || result.failures.length > 0) {
-      app.log.info(result, "processed automatic reservation actions");
-    }
-  });
+  void billing
+    .settleDue()
+    .then((result) => {
+      if (result.processed > 0 || result.failures.length > 0) {
+        app.log.info(result, "processed automatic reservation actions");
+      }
+    })
+    .catch((error: unknown) => {
+      app.log.error({ err: error }, "automatic reservation actions failed");
+    });
 }, 5_000);
 settlementTimer.unref();
 

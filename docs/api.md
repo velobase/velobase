@@ -75,7 +75,7 @@ curl --request POST http://localhost:3000/v1/reservations/video-job-456/release
 
 | Method | Path                                      | Purpose                                       |
 | ------ | ----------------------------------------- | --------------------------------------------- |
-| `GET`  | `/health`                                 | Process health check                          |
+| `GET`  | `/health`                                 | Process and database health check             |
 | `GET`  | `/openapi.json`                           | OpenAPI 3.1 document                          |
 | `POST` | `/v1/grants`                              | Create or replay a credit grant               |
 | `POST` | `/v1/reservations`                        | Create or replay a reservation                |

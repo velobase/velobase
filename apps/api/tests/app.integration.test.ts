@@ -7,6 +7,28 @@ import { createApp } from "../src/app.js";
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const integration = databaseUrl ? describe : describe.skip;
 
+describe("health readiness", () => {
+  it("reports failure when PostgreSQL is unavailable", async () => {
+    const pool = {
+      query: async () => {
+        throw new Error("database unavailable");
+      },
+    } as unknown as Pool;
+    const { app } = createApp({
+      pool,
+      tenantId: "health-test",
+      projectId: "health-test",
+    });
+
+    const response = await app.inject({ method: "GET", url: "/health" });
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toMatchObject({
+      error: { code: "INTERNAL_ERROR" },
+    });
+    await app.close();
+  });
+});
+
 integration("Velobase API", () => {
   const pool = new Pool({ connectionString: databaseUrl });
   const { app } = createApp({

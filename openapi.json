@@ -47,11 +47,11 @@
     "/health": {
       "get": {
         "operationId": "getHealth",
-        "summary": "Check process health",
+        "summary": "Check process and database health",
         "tags": ["System"],
         "responses": {
           "200": {
-            "description": "The process is ready",
+            "description": "The process can reach its database",
             "content": {
               "application/json": {
                 "schema": {
