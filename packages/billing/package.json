@@ -1,0 +1,63 @@
+{
+  "name": "@velobase/billing",
+  "version": "0.1.0",
+  "description": "A reliable usage credit engine for AI and SaaS products",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "bin": {
+    "velobase-billing": "./bin/velobase-billing.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "migrations",
+    "README.md",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/velobase/velobase.git",
+    "directory": "packages/billing"
+  },
+  "homepage": "https://github.com/velobase/velobase#readme",
+  "bugs": {
+    "url": "https://github.com/velobase/velobase/issues"
+  },
+  "keywords": [
+    "billing",
+    "credits",
+    "usage-based-billing",
+    "ai",
+    "postgresql"
+  ],
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}

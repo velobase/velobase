@@ -1,229 +1,117 @@
 # Velobase
 
-**Production-proven AI SaaS infrastructure. Ship fast, skip the boilerplate.**
+[![CI](https://github.com/velobase/velobase/actions/workflows/ci.yml/badge.svg)](https://github.com/velobase/velobase/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Velobase is an AI product starter kit extracted from a real, revenue-generating production system. Every module — billing, payments, subscriptions, admin panel — has been battle-tested with real users and real money. Think ShipFast, but purpose-built for AI products.
+Velobase is an open-source usage credit engine for AI and SaaS products. It handles the awkward part of usage billing: reserving an estimate before expensive work starts, then charging the actual cost without losing or double-spending credits.
 
-> Not a toy. Not a demo. This is infrastructure that has processed real payments, managed real subscriptions, and served real AI workloads.
-
-## What You Get
-
-### Billing Engine
-
-Multi-account credit & quota system with transactional guarantees.
-
-- **Freeze → Consume → Unfreeze** workflow for safe credit operations
-- Multiple account types: free trial, membership, order, promo, daily login
-- FEFO (First Expire, First Out) debit algorithm across accounts
-- Idempotent operations via `businessId` — no double charges
-- Account lifecycle management: `PENDING → ACTIVE → EXPIRED / DEPLETED`
-- Balance snapshots and transaction history
-
-### Payment Gateway
-
-Multi-provider payment abstraction — plug in any gateway without touching business logic.
-
-- **Stripe** — Cards, subscriptions, saved card direct charge
-- **Airwallex** — Multi-currency international payments
-- **NOWPayments** — Crypto payments
-- **Telegram Stars** — Telegram in-app payments
-- Provider registry pattern: implement `PaymentProvider` interface to add new gateways
-- Idempotent webhook handling with deduplication
-- Immutable `PaymentTransaction` records (cashflow audit trail)
-- Multi-currency pricing: USD, EUR, GBP, CHF, AUD with country-based resolution
-- Order types: new purchase, upgrade, downgrade, renewal, promo grant
-
-### Subscription & Entitlements
-
-Full subscription lifecycle with plan tiers and feature gating.
-
-- Plans: FREE → STARTER → PLUS → PREMIUM (configurable)
-- Trial periods with automatic conversion
-- Billing cycles with per-cycle credit grants
-- Entitlement types: `BOOLEAN` (feature flags), `LIMIT` (quotas), `LEVEL` (tiers)
-- Cancel-at-period-end, immediate cancellation, early trial conversion
-- Immutable plan snapshots at subscription time
-
-### Fulfillment System
-
-Pluggable order fulfillment — triggered by successful payment webhooks.
-
-- Strategy pattern: `Fulfiller` interface with `canHandle()` + `fulfill()`
-- Built-in fulfillers: credits package, subscription activation, one-time entitlements
-- Payment-driven: hooks into webhook pipeline
-- Idempotent: safe to retry without side effects
-
-### Product Catalog
-
-Multi-currency product management with pricing and availability.
-
-- Product types: subscription, one-time entitlement, credits package
-- Multi-currency `ProductPrice` model with country-based resolution
-- Product snapshots frozen in orders (immutable at purchase time)
-- Soft deletes for audit compliance
-- Admin CRUD with availability toggles
-
-### Promo Code System
-
-Code-based promotions with concurrency-safe redemption.
-
-- Grant types: credit grants or product grants
-- Usage limits: global cap + per-user cap
-- Time-bounded: `startsAt` / `expiresAt`
-- `pg_advisory_xact_lock` for race-condition-free redemption
-- Integrated with billing (credit grants) and fulfillment (product grants)
-
-### Auth & Security
-
-NextAuth 5 with production-grade abuse prevention.
-
-- Providers: Google OAuth, Email magic link, password (allowlist)
-- Email normalization: Gmail alias & dot-trick deduplication
-- Disposable email domain blocking
-- Cloudflare Turnstile bot protection
-- Rate limiting: 3 emails/hr per email, 10/hr per IP
-- Signup flow: initial credit grants, device detection, referral binding, UTM attribution
-- JWT sessions with user metadata injection
-
-### Rate Limiting & Concurrency
-
-Tiered, Redis-backed rate limiting with concurrency gates.
-
-- User-level: tier-based limits (FREE: 20/min, PLUS: 120/min, configurable)
-- IP-level: fallback for unauthenticated requests
-- Guest rate limiting: per guest ID + IP
-- Concurrency slots: `acquireChatSlot` / `releaseChatSlot` for max parallel operations
-- Sliding window algorithm via `rate-limiter-flexible`
-
-### Storage
-
-S3-compatible multi-provider storage abstraction.
-
-- Providers: AWS S3, Cloudflare R2, Aliyun OSS, Google Cloud Storage, MinIO
-- Presigned URLs for upload and download
-- CDN integration with configurable base URL
-- Structured key generation: `{userId}/{type}/{id}/{variant}.{ext}`
-- Download-and-reupload utility for external URLs
-
-### AI Chat Engine
-
-Event-sourcing chat architecture with agent framework.
-
-- **Interaction tree**: immutable events with `parentId` branching (supports variants & edits)
-- Interaction types: `user_message`, `ai_message`, `document_processing`, `message_edit`
-- Projection engine: transform interaction tree → linear `UIMessage[]` for UI
-- Agent system: system agents + user-customizable agents with tools
-- Tool registry: factory-based, context-aware tool preparation
-- File attachment processing: PDF, DOCX → Markdown conversion
-- Streaming: Vercel AI SDK with back-pressure
-- Guest support with separate rate limiting
-
-### Admin Panel
-
-Full-featured back-office for operations and customer support.
-
-- **Users**: list, search, detail view, block/unblock, related accounts detection, delete
-- **Orders**: list with filters, detail view, payment info, per-user order history, stats
-- **Credits**: per-user credit view, manual grant/deduct, billing record history
-- **Products**: catalog management, price editing, availability toggle, Airwallex sync
-- **Promo Codes**: CRUD, usage tracking
-- **Subscriptions**: managed through user detail view
-- **Affiliate**: commission tracking, payout management (approve/reject/complete)
-- **Works**: content moderation, video management, task promotion
-- **Touches**: scene/template/schedule management for user engagement
-- Role-based access: `isAdmin` flag in JWT, `adminProcedure` middleware, layout-level redirect
-
-### tRPC API Layer
-
-End-to-end type-safe API with composable middleware.
-
-- Procedures: `publicProcedure`, `protectedProcedure`, `adminProcedure`, `rateLimitedProcedure`
-- Context: session, database, client IP, headers — injected automatically
-- Zod validation on all inputs
-- Structured error handling with `TRPCError`
-- Superjson serialization (Date, BigInt, etc.)
-- Timing middleware for performance monitoring
-
-## Tech Stack
-
-| Layer | Choice |
-|-------|--------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript (strict mode, `noUncheckedIndexedAccess`) |
-| API | tRPC v11 |
-| Database | PostgreSQL + Prisma |
-| Cache & Queue | Redis + BullMQ |
-| Auth | NextAuth v5 |
-| AI | Vercel AI SDK |
-| Payments | Stripe, Airwallex, NOWPayments, Telegram Stars |
-| Storage | S3-compatible (AWS, R2, OSS, GCS, MinIO) |
-| UI | TailwindCSS + Radix UI |
-| Logging | Pino (structured, dual output in dev) |
-| Analytics | PostHog |
-
-## Architecture Patterns
-
-These patterns are consistent across all modules:
-
-- **Service layer** — Business logic lives in services, route handlers stay thin
-- **Transactional safety** — Prisma `$transaction` for all multi-step mutations
-- **Idempotency** — `businessId`, `uniqueKey`, advisory locks prevent duplicates
-- **Zod schemas** — Runtime validation on every boundary
-- **Soft deletes** — `deletedAt` for audit trail, never hard delete
-- **Snapshots** — Product/plan state frozen at order/subscription time
-- **Provider pattern** — Pluggable implementations (payment, fulfillment, storage)
-- **Event sourcing** — Chat interactions as immutable events with tree structure
-- **Projection pattern** — Transform stored events → view models
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── admin/           # Admin panel (pages + layout)
-│   ├── api/             # API routes (auth, tRPC, webhooks, chat)
-│   └── [pages]/         # Public pages
-├── modules/
-│   └── ai-chat/         # AI chat module (components, hooks, server)
-├── components/
-│   ├── ui/              # Radix UI component library
-│   ├── admin/           # Admin panel components
-│   └── auth/            # Auth components
-├── server/
-│   ├── admin/           # Admin routers & procedures
-│   ├── billing/         # Credit/quota billing engine
-│   ├── order/           # Order processing & payment providers
-│   ├── membership/      # Subscriptions & entitlements
-│   ├── product/         # Product catalog
-│   ├── promo/           # Promo code system
-│   ├── fulfillment/     # Order fulfillment providers
-│   ├── auth/            # NextAuth config & security
-│   ├── api/             # tRPC routers & middleware
-│   │   └── tools/       # AI agent tool registry
-│   ├── lib/             # Shared server utilities
-│   ├── db.ts            # Prisma client
-│   ├── redis.ts         # Redis client
-│   ├── ratelimit.ts     # Rate limiting
-│   └── storage.ts       # S3 storage abstraction
-├── lib/                 # Shared libraries (logger, utils)
-├── stores/              # Zustand state management
-└── env.js               # Environment validation (t3-env)
-
-prisma/
-├── schema.prisma        # Database schema
-└── migrations/          # Migration history
+```text
+Grant → Reserve → Settle
+                ↘ Release
 ```
 
-## Getting Started
+The first source release includes a TypeScript library, PostgreSQL persistence, a local HTTP API, an explainable Ledger Explorer, and a runnable AI video example.
+
+> **Release status:** v0.1 is suitable for evaluation and integration testing. Its accounting invariants are tested, but the API may change before v1.0. The included HTTP server has no authentication and must not be exposed directly to the public internet.
+
+## Try the complete lifecycle
+
+Requirements: Docker, Node.js 20.19 or newer, and pnpm 10.12.1.
 
 ```bash
-pnpm install
-cp .env.example .env     # Configure your environment
-pnpm db:push             # Push schema to database
-pnpm db:seed             # Seed initial data
-pnpm dev                 # Start development server
+git clone https://github.com/velobase/velobase.git
+cd velobase
+pnpm install --frozen-lockfile
+pnpm dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000), then select **Run the AI video demo**. In one click Velobase will:
+
+1. Grant 100 promotional credits.
+2. Reserve all 100 before a simulated video job.
+3. Settle the real cost at 67.
+4. Return the unused 33 and show every entry in the ledger.
+
+Stop the local stack with `pnpm dev:down`. The PostgreSQL volume is retained so you can inspect the same ledger after restarting.
+
+## Use the TypeScript engine
+
+The library lives at [`packages/billing`](packages/billing) and can be consumed directly inside this workspace:
+
+```ts
+import { createBilling, migrate } from "@velobase/billing";
+import { Pool } from "pg";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+await migrate(pool);
+
+const billing = createBilling({
+  pool,
+  tenantId: "acme",
+  projectId: "video",
+});
+
+await billing.grant({
+  customerId: "customer-123",
+  amount: 100,
+  idempotencyKey: "welcome-credit-123",
+});
+
+await billing.reserve({
+  customerId: "customer-123",
+  amount: 100,
+  transactionId: "video-job-456",
+});
+
+await billing.settle({
+  transactionId: "video-job-456",
+  actualAmount: 67,
+});
+```
+
+The resulting available balance is 33. Repeating any operation with the same identity and parameters is safe.
+
+## What the core guarantees
+
+- **Retry-safe writes.** Idempotency fingerprints prevent a retried request from changing meaning.
+- **No overspending.** Wallet-scoped locks and PostgreSQL row locks serialize competing reservations.
+- **Deterministic allocation.** Credits are consumed first-expiring-first-out, then by creation order.
+- **Explicit terminal states.** A reservation can settle or release, but cannot do both.
+- **Explainable balances.** Every change produces an append-only ledger entry with source and transaction context.
+- **Tenant isolation.** Grants, reservations, balances, and ledger reads are scoped to one tenant and project.
+- **Safe migrations.** Applied SQL migrations are checksummed and cannot be silently rewritten.
+
+## Repository map
+
+```text
+packages/billing   Framework-agnostic TypeScript contract and PostgreSQL engine
+apps/api           Local Fastify adapter and Ledger Explorer
+examples/ai-video  Minimal grant → reserve → settle example
+docs               API, architecture, state machine, and operations guidance
+```
+
+The open-source boundary intentionally contains the complete accounting engine. Authentication, payment collection, invoicing, taxes, pricing catalogs, dashboards, and managed operations are separate concerns and are not hidden requirements for running the core.
+
+## Documentation
+
+- [HTTP API guide](docs/api.md) and [OpenAPI 3.1 contract](openapi.json)
+- [Architecture and invariants](docs/architecture.md)
+- [Reservation state machine](docs/state-machine.md)
+- [Self-hosting and production checklist](docs/self-hosting.md)
+- [Roadmap](ROADMAP.md)
+- [Contributing](CONTRIBUTING.md), [support](SUPPORT.md), and [security policy](SECURITY.md)
+
+## Development
+
+```bash
+pnpm install --frozen-lockfile
+pnpm db:up
+pnpm test:integration
+pnpm db:down
+```
+
+`pnpm check` runs formatting, builds the workspace from source, type-checks every package, validates the OpenAPI contract, and executes the test suite.
 
 ## License
 
-Private — All rights reserved.
+Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

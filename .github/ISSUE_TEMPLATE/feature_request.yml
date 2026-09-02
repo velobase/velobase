@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose a focused addition to the open-source core.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the concrete workflow or failure mode, not only a preferred implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current workaround
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Smallest useful contract
+      description: What is the minimum behavior the core would need to expose?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues, discussions, and the roadmap.
+          required: true
