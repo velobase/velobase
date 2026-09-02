@@ -8,6 +8,7 @@ Velobase is building a small, trustworthy foundation for usage credits rather th
 - PostgreSQL transactions, concurrency safety, migrations, and append-only ledger.
 - TypeScript contract, local HTTP adapter, OpenAPI definition, and Ledger Explorer.
 - Runnable AI workload example and complete self-hosting documentation.
+- Signed multi-platform container images, a Docker-only quick start, and automated image vulnerability scanning.
 
 ## Next
 
@@ -16,6 +17,7 @@ Velobase is building a small, trustworthy foundation for usage credits rather th
 - Add an operator command for scheduled terminal actions.
 - Add instrumentation hooks for metrics and tracing without choosing a vendor.
 - Document adapters for common job queues and AI SDK workflows.
+- Provide a reference authenticated gateway for teams that want to deploy the HTTP adapter beyond loopback.
 
 ## Later, after evidence
 

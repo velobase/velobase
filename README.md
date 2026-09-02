@@ -10,19 +10,19 @@ Grant → Reserve → Settle
                 ↘ Release
 ```
 
-The first source release includes a TypeScript library, PostgreSQL persistence, a local HTTP API, an explainable Ledger Explorer, and a runnable AI video example.
+The release includes a TypeScript library, PostgreSQL persistence, a local HTTP API, an explainable Ledger Explorer, a runnable AI video example, and an official multi-platform container image.
 
 > **Release status:** v0.1 is suitable for evaluation and integration testing. Its accounting invariants are tested, but the API may change before v1.0. The included HTTP server has no authentication and must not be exposed directly to the public internet.
 
-## Try the complete lifecycle
+## Start with Docker
 
-Requirements: Docker, Node.js 20.19 or newer, and pnpm 10.12.1.
+Requirements: Docker with Compose v2. No Node.js, pnpm, or local build is required.
 
 ```bash
-git clone https://github.com/velobase/velobase.git
-cd velobase
-pnpm install --frozen-lockfile
-pnpm dev
+curl --fail --location \
+  https://github.com/velobase/velobase/releases/download/v0.1.1/compose.yaml \
+  --output compose.yaml
+docker compose up --detach --wait
 ```
 
 Open [http://localhost:3000](http://localhost:3000), then select **Run the AI video demo**. In one click Velobase will:
@@ -32,7 +32,9 @@ Open [http://localhost:3000](http://localhost:3000), then select **Run the AI vi
 3. Settle the real cost at 67.
 4. Return the unused 33 and show every entry in the ledger.
 
-Stop the local stack with `pnpm dev:down`. The PostgreSQL volume is retained so you can inspect the same ledger after restarting.
+The API binds only to `127.0.0.1`, migrations run before it becomes healthy, and the PostgreSQL volume survives restarts. Stop the stack with `docker compose down`; add `--volumes` only when you intentionally want to erase its local ledger.
+
+The exact `0.1.1` image is pulled from `ghcr.io/velobase/velobase`. See the [container and self-hosting guide](docs/self-hosting.md) for image tags, verification, external PostgreSQL, upgrades, backups, and the security boundary.
 
 ## Use the TypeScript engine
 
@@ -88,6 +90,8 @@ packages/billing   Framework-agnostic TypeScript contract and PostgreSQL engine
 apps/api           Local Fastify adapter and Ledger Explorer
 examples/ai-video  Minimal grant → reserve → settle example
 docs               API, architecture, state machine, and operations guidance
+compose.yaml       Released image and PostgreSQL for a Docker-only first run
+compose.dev.yaml   Local source-build override for contributors
 ```
 
 The open-source boundary intentionally contains the complete accounting engine. Authentication, payment collection, invoicing, taxes, pricing catalogs, dashboards, and managed operations are separate concerns and are not hidden requirements for running the core.
@@ -105,12 +109,12 @@ The open-source boundary intentionally contains the complete accounting engine. 
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm db:up
-pnpm test:integration
-pnpm db:down
+pnpm dev
 ```
 
-`pnpm check` runs formatting, builds the workspace from source, type-checks every package, validates the OpenAPI contract, and executes the test suite.
+This builds the same production image from the working tree by combining `compose.yaml` with `compose.dev.yaml`. Run `pnpm dev:down` to stop it or `pnpm docker:test` for the full container smoke test.
+
+For library-only development, `pnpm db:up`, `pnpm test:integration`, and `pnpm db:down` run the test suite against the development PostgreSQL port. `pnpm check` validates formatting, documentation, OpenAPI, package versions, builds, types, tests, and the distributable package.
 
 ## License
 
