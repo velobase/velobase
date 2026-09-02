@@ -8,11 +8,30 @@ Its first release focuses on a reliable reservation workflow for workloads whose
 Grant → Reserve → Settle or Release
 ```
 
-The billing engine is being extracted from Velobase's production system into a small, independently runnable project. The public API, PostgreSQL storage, local Ledger Explorer, and AI video example will land as independently reviewable commits before the first public release.
+The billing engine is being extracted from Velobase's production system into a small, independently runnable project. It now includes a TypeScript API, PostgreSQL storage, a local Ledger Explorer, and an AI video example.
+
+## Try it locally
+
+Requirements: Docker, Node.js 20.19 or newer, and pnpm 10.12.1.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and run the AI video lifecycle: grant 100 credits, reserve 100, settle 67, and release 33. The web interface and API are intentionally unauthenticated for local evaluation; do not expose this demo server to the public internet.
+
+To run the same lifecycle from TypeScript instead:
+
+```bash
+pnpm db:up
+pnpm demo
+pnpm db:down
+```
 
 ## Project status
 
-Pre-release. The repository is being prepared in the open-source release branch and is not yet ready for production use.
+Pre-release. The core accounting rules and persistence layer are tested, but the public API may still change before v1.0.0.
 
 ## Principles
 

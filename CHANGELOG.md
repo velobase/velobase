@@ -14,3 +14,4 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - PostgreSQL grants, reservations, settlements, releases, balances, and append-only ledger storage.
 - Checksum-protected migrations and automatic reservation settlement.
 - Integration tests for retries, terminal states, tenant isolation, FEFO allocation, and concurrent reservations.
+- A local Fastify API, Ledger Explorer, Docker Compose environment, and runnable AI video example.
