@@ -43,6 +43,7 @@ export type AllocationRow = {
   settled_amount: string;
   released_amount: string;
   status: ReservationStatus;
+  allocation_order: number;
   created_at: Date;
 };
 

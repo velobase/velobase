@@ -295,7 +295,7 @@ export class PostgresBilling implements Billing {
         ],
       );
 
-      for (const allocation of allocations) {
+      for (const [allocationOrder, allocation] of allocations.entries()) {
         await client.query(
           `UPDATE billing_grants
            SET reserved_amount = reserved_amount + $1, updated_at = $2
@@ -305,13 +305,14 @@ export class PostgresBilling implements Billing {
         await client.query(
           `INSERT INTO billing_allocations (
              id, reservation_id, grant_id, reserved_amount, settled_amount,
-             released_amount, status, created_at, updated_at
-           ) VALUES ($1, $2, $3, $4, 0, 0, 'RESERVED', $5, $5)`,
+             released_amount, status, allocation_order, created_at, updated_at
+           ) VALUES ($1, $2, $3, $4, 0, 0, 'RESERVED', $5, $6, $6)`,
           [
             this.idGenerator(),
             reservationId,
             allocation.grantId,
             allocation.amount,
+            allocationOrder,
             now,
           ],
         );
@@ -762,7 +763,7 @@ export class PostgresBilling implements Billing {
        FROM billing_allocations allocation
        JOIN billing_grants grant_row ON grant_row.id = allocation.grant_id
        WHERE allocation.reservation_id = $1
-       ORDER BY allocation.created_at ASC, allocation.id ASC
+       ORDER BY allocation.allocation_order ASC
        FOR UPDATE OF allocation, grant_row`,
       [reservationId],
     );
@@ -779,7 +780,7 @@ export class PostgresBilling implements Billing {
        FROM billing_allocations allocation
        JOIN billing_grants grant_row ON grant_row.id = allocation.grant_id
        WHERE allocation.reservation_id = $1
-       ORDER BY allocation.created_at ASC, allocation.id ASC`,
+       ORDER BY allocation.allocation_order ASC`,
       [reservation.id],
     );
 

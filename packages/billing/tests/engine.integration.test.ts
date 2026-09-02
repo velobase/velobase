@@ -237,6 +237,16 @@ integration("PostgresBilling", () => {
       { grantId: expiring.grantId, source: "promotion", amount: 50 },
       { grantId: permanent.grantId, source: "purchase", amount: 10 },
     ]);
+    await expect(
+      billing.reserve({
+        customerId: "customer-1",
+        amount: 60,
+        transactionId: "job-1",
+      }),
+    ).resolves.toMatchObject({
+      allocations: reservation.allocations,
+      replayed: true,
+    });
   });
 
   it("isolates tenants and projects", async () => {
@@ -321,6 +331,7 @@ integration("PostgresBilling", () => {
   it("applies migrations idempotently", async () => {
     await expect(migrate(pool)).resolves.toEqual([
       { version: "0001_initial.sql", applied: false },
+      { version: "0002_allocation_order.sql", applied: false },
     ]);
   });
 });
