@@ -2,7 +2,13 @@
 
 The framework-agnostic usage credit engine that powers Velobase.
 
-The package is included in the v0.1 source release; npm publishing is on the roadmap. Its public contract uses seven operations:
+Install it with your preferred package manager:
+
+```bash
+pnpm add @velobase/billing pg
+```
+
+The package requires Node.js 20.19 or newer and PostgreSQL. Its public contract uses seven operations:
 
 ```text
 grant → reserve → settle
