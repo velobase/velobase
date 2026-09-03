@@ -1,6 +1,7 @@
 # Velobase
 
 [![CI](https://github.com/velobase/velobase/actions/workflows/ci.yml/badge.svg)](https://github.com/velobase/velobase/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40velobase%2Fbilling.svg)](https://www.npmjs.com/package/@velobase/billing)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 Velobase is an open-source usage credit engine for AI and SaaS products. It handles the awkward part of usage billing: reserving an estimate before expensive work starts, then charging the actual cost without losing or double-spending credits.
@@ -38,7 +39,13 @@ The exact `0.1.1` image is pulled from `ghcr.io/velobase/velobase`. See the [con
 
 ## Use the TypeScript engine
 
-The library lives at [`packages/billing`](packages/billing) and can be consumed directly inside this workspace:
+Install the library and its PostgreSQL driver:
+
+```bash
+pnpm add @velobase/billing pg
+```
+
+Then create a billing engine backed by PostgreSQL:
 
 ```ts
 import { createBilling, migrate } from "@velobase/billing";
