@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@velobase/billing": "workspace:*",
-    "pg": "^8.16.3"
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
